@@ -1,0 +1,27 @@
+VCD info: dumpfile sim/tb_units_realtime.vcd opened for output.
+
+==== U1 : UART loop-back at 115200 baud ====
+[  22223.4 us] PASS : U1 all 256 byte values received correctly
+        start-bit width = 8680 ns (ideal 8680.6 ns for 115200 baud)
+[  22223.4 us] PASS : U1 bit time = 8.68 us (115200 baud, 0.01 % error)
+
+==== U2 : fan PWM at 25 kHz ====
+        period = 40000.0 ns (25.00 kHz), high time = 18800.0 ns (47.0 %)
+[  22360.1 us] PASS : U2 PWM period 40 us = 25 kHz
+[  22360.1 us] PASS : U2 duty 47 % -> 18.8 us high
+[  22440.1 us] PASS : U2 duty 100 % -> always high
+[  22520.1 us] PASS : U2 duty 0 % -> always low
+
+==== U3 : ADT7420 read at 100 kHz SCL ====
+        temp_raw = 440  (= 27.5000 C)
+[  23090.0 us] PASS : U3 27.5 C read correctly
+        SCL period = 10000 ns (100.0 kHz)
+[  23225.0 us] PASS : U3 SCL = 100 kHz
+[  23690.0 us] PASS : U3 -10.25 C (two's complement) read correctly
+
+==================================================
+ TOTAL CHECKS : 9   FAILED : 0
+ RESULT       : ALL TESTS PASSED
+==================================================
+
+tb/tb_units_realtime.v:117: $finish called at 23690095000 (1ps)

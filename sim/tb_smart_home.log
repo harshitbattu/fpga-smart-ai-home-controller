@@ -1,0 +1,251 @@
+VCD info: dumpfile sim/tb_smart_home.vcd opened for output.
+
+==== T1 : reset and start-up banner ====
+[     48.0 us] << SMART HOME CONTROLLER READY
+[     48.0 us] PASS : T1 banner after reset
+
+==== T2 : ADT7420 temperature over I2C ====
+[    128.0 us] PASS : T2 temp_raw = 400 (25.0 C)
+[    128.0 us] >> STATUS
+[    340.4 us] << T=+25.0C TH=28 FAN=000% LIGHT=0 MODE=AUTO   ECO=1 SEC=DISARMED GAS=0 OCC=0 PRED=0 FAULT=0 TIME=00:00 DAY=000 AI=- P=---%
+[    340.4 us] PASS : T2 STATUS reports T=+25.0C
+[    420.4 us] PASS : T2 negative temperature -5.5 C
+[    420.4 us] >> S
+[    624.8 us] << T=-05.5C TH=28 FAN=000% LIGHT=0 MODE=AUTO   ECO=1 SEC=DISARMED GAS=0 OCC=0 PRED=0 FAULT=0 TIME=00:00 DAY=000 AI=- P=---%
+[    624.8 us] PASS : T2 STATUS reports T=-05.5C
+
+==== T3 : automatic fan control (hysteresis + proportional) ====
+[    708.8 us] PASS : T3 28.4 C (<TH+0.5) fan OFF
+[    792.8 us] PASS : T3 29.0 C fan ON ~47 %
+        measured duty = 47 %
+[    876.8 us] PASS : T3 30.0 C fan ~65 %
+[    960.8 us] PASS : T3 32.0 C fan 100 %
+[   1044.8 us] PASS : T3 27.6 C hysteresis keeps fan ON (30 %)
+[   1128.8 us] PASS : T3 27.4 C fan OFF
+
+==== T4 : occupancy timeout, lighting, ECO ====
+[   1128.8 us] >> OCC 5
+[   1144.9 us] << OK
+[   1144.9 us] PASS : T4 OCC 5 accepted
+[   1225.9 us] PASS : T4 dark + motion -> light ON
+[   1525.9 us] PASS : T4 light stays ON inside timeout (3 s)
+[   1825.9 us] PASS : T4 light OFF after 5 s empty
+[   1829.9 us] PASS : T4 ECO: hot but empty room -> fan OFF
+[   1829.9 us] >> ECO 0
+[   1846.0 us] << OK
+[   1846.0 us] PASS : T4 ECO 0 accepted
+[   1850.5 us] PASS : T4 ECO off -> fan runs in empty room
+[   1850.5 us] >> ECO 1
+[   1866.6 us] << OK
+[   1866.6 us] PASS : T4 ECO 1 accepted
+
+==== T5 : manual control over UART ====
+[   1866.6 us] >> FAN 70
+[   1884.3 us] << OK
+[   1884.3 us] PASS : T5 FAN 70 -> OK
+[   1888.8 us] PASS : T5 manual fan 70 %
+[   1888.8 us] >> light on
+[   1909.7 us] << OK
+[   1909.7 us] PASS : T5 lower-case 'light on' -> OK
+[   1909.9 us] PASS : T5 manual light ON
+[   1909.9 us] >> MODE AUTO
+[   1932.4 us] << OK
+[   1932.5 us] PASS : T5 MODE AUTO -> OK
+[   1932.7 us] PASS : T5 back in AUTO mode
+[   1932.7 us] >> TH 26
+[   1948.8 us] << OK
+[   1948.8 us] PASS : T5 TH 26 -> OK
+[   1948.8 us] PASS : T5 threshold = 26
+[   1948.8 us] >> TH 28
+[   1964.9 us] << OK
+[   1964.9 us] PASS : T5 TH 28 -> OK
+
+==== T6 : invalid commands ====
+[   1964.9 us] >> FOO
+[   1979.5 us] << ERR
+[   1979.5 us] PASS : T6 unknown keyword -> ERR
+[   1979.5 us] >> FAN 150
+[   2000.4 us] << ERR
+[   2000.4 us] PASS : T6 FAN 150 out of range -> ERR
+[   2000.4 us] >> TH 5
+[   2016.6 us] << ERR
+[   2016.6 us] PASS : T6 TH 5 out of range -> ERR
+[   2016.6 us] >> ARM 12
+[   2036.0 us] << ERR
+[   2036.0 us] PASS : T6 PIN must have 4 digits -> ERR
+
+==== T7 : gas leak safety interlock ====
+        gas input -> valve closed latency = 2 clock cycles (20 ns)
+[   2036.0 us] PASS : T7 valve closes within 3 clock cycles
+[   2036.0 us] PASS : T7 exhaust fan forced 100 % + siren ON
+[   2080.5 us] << EVT GAS_LEAK VALVE_CLOSED
+[   2080.5 us] PASS : T7 EVT GAS_LEAK reported
+[   2080.5 us] >> FAN 0
+[   2096.6 us] << OK
+[   2096.6 us] PASS : T7 FAN 0 accepted
+[   2096.8 us] PASS : T7 user command cannot override emergency
+[   2096.8 us] PASS : T7 display shows blinking 'GAS ALrt'
+[   2096.8 us] >> ACK
+[   2116.4 us] << DENIED
+[   2116.4 us] PASS : T7 ACK refused while gas present
+[   2316.4 us] PASS : T7 stays latched after gas clears (slow reset)
+[   2639.7 us] << EVT GAS_CLEAR SEND_ACK
+[   2639.7 us] PASS : T7 EVT GAS_CLEAR after 5 s
+[   2639.7 us] >> ACK
+[   2652.7 us] << OK
+[   2652.7 us] PASS : T7 ACK accepted
+[   2652.8 us] PASS : T7 valve reopened, siren off
+[   2652.8 us] >> MODE AUTO
+[   2675.3 us] << OK
+[   2675.3 us] PASS : T7 MODE AUTO
+
+==== T8 : security (arm, entry delay, intrusion) ====
+[   2675.3 us] >> ARM 1234
+[   2696.2 us] << OK
+[   2696.2 us] PASS : T8 ARM 1234 -> OK
+[   2696.3 us] PASS : T8 exit delay running
+[   3618.3 us] << EVT ARMED
+[   3618.3 us] PASS : T8 EVT ARMED after 10 s exit delay
+[   3646.5 us] << EVT ENTRY_DELAY
+[   3646.5 us] PASS : T8 door open -> entry delay
+[   3646.5 us] >> DISARM 1111
+[   3678.8 us] << DENIED
+[   3678.9 us] PASS : T8 wrong PIN -> DENIED
+[   3678.9 us] >> DISARM 1234
+[   3704.6 us] << OK
+[   3704.6 us] PASS : T8 correct PIN -> OK
+[   3727.7 us] << EVT DISARMED
+[   3727.7 us] PASS : T8 EVT DISARMED
+[   3728.8 us] PASS : T8 BTNC starts exit delay
+[   4718.3 us] << EVT ARMED
+[   4718.3 us] PASS : T8 armed by button
+[   4743.2 us] << EVT INTRUSION
+[   4743.2 us] PASS : T8 motion while armed -> INTRUSION
+[   4743.2 us] PASS : T8 siren ON + panic lighting ON
+[   4743.2 us] >> DISARM 1234
+[   4768.9 us] << OK
+[   4769.0 us] PASS : T8 disarm alarm
+[   4769.3 us] PASS : T8 siren OFF after disarm
+[   4769.3 us] >> ARM 1234
+[   4792.1 us] << EVT DISARMED
+[   4798.7 us] << OK
+[   4798.7 us] PASS : T8 re-arm
+[   5718.3 us] << EVT ARMED
+[   5718.3 us] PASS : T8 armed again
+[   5746.5 us] << EVT ENTRY_DELAY
+[   5746.5 us] PASS : T8 entry delay started
+[   7224.9 us] << EVT INTRUSION
+[   7224.9 us] PASS : T8 no PIN within 15 s -> INTRUSION
+[   7224.9 us] >> DISARM 1234
+[   7250.6 us] << OK
+[   7250.6 us] PASS : T8 disarm
+
+==== T9 : PIN lockout and PIN change ====
+[   7250.6 us] >> DISARM 0000
+[   7273.7 us] << EVT DISARMED
+[   7287.0 us] << DENIED
+[   7287.0 us] PASS : T9 wrong PIN 1
+[   7287.0 us] >> DISARM 0001
+[   7319.3 us] << DENIED
+[   7319.3 us] PASS : T9 wrong PIN 2
+[   7319.3 us] >> DISARM 0002
+[   7351.6 us] << LOCKED
+[   7373.1 us] << EVT LOCKOUT
+[   7373.1 us] PASS : T9 3rd wrong PIN -> EVT LOCKOUT
+[   7373.1 us] >> DISARM 1234
+[   7405.4 us] << LOCKED
+[   7405.4 us] PASS : T9 even correct PIN refused while locked
+[  10505.4 us] >> PIN 1234 4321
+[  10534.3 us] << OK
+[  10534.3 us] PASS : T9 PIN changed after lockout expires
+[  10534.3 us] >> ARM 1234
+[  10561.8 us] << DENIED
+[  10561.8 us] PASS : T9 old PIN rejected
+[  10561.8 us] >> ARM 4321
+[  10582.7 us] << OK
+[  10582.8 us] PASS : T9 new PIN accepted
+[  10582.8 us] >> DISARM 4321
+[  10608.5 us] << OK
+[  10608.5 us] PASS : T9 disarm with new PIN
+[  10631.6 us] << EVT DISARMED
+[  10631.6 us] PASS : T9 disarmed
+
+==== T10 : on-chip occupancy learning (5 simulated days) ====
+[  10711.6 us] >> CLEAR
+[  10727.7 us] << OK
+[  10727.7 us] PASS : T10 learned profile cleared
+[  10727.7 us] >> TIME 0 0
+[  10748.6 us] << OK
+[  10748.6 us] PASS : T10 time set 00:00
+[  10748.6 us] >> FAST 1
+[  10766.3 us] << OK
+[  10766.3 us] PASS : T10 fast time on (1 h = 1 s)
+        3 days learned, trained = 1
+[  17929.9 us] PASS : T10 model trained after 3 days
+[  20320.3 us] PASS : T10 busy hours learned: score = 174 after 4 days
+[  20320.3 us] PASS : T10 empty hours stay 0
+[  20668.9 us] << EVT ANOMALY H=03
+[  20668.9 us] PASS : T10 motion at 03 h -> EVT ANOMALY
+[  20668.9 us] PASS : T10 warning LED latched
+[  21151.6 us] << EVT INACTIVITY H=07
+[  21151.7 us] PASS : T10 no activity in busy hour 07 -> EVT INACTIVITY
+[  21251.2 us] << EVT INACTIVITY H=08
+[  21350.8 us] << EVT INACTIVITY H=09
+[  21539.4 us] PASS : T10 12 h: not predicted -> fan OFF (energy saved)
+[  22037.4 us] PASS : T10 17 h: arrival predicted at 18 h -> pre-cooling fan ON
+[  22037.4 us] >> PROFILE
+[  22357.0 us] << PROFILE DAYS=004 00=000 01=000 02=000 03=063 04=000 05=000 06=000 07=131 08=131 09=131 10=000 11=000 12=000 13=000 14=000 15=000 16=000 17=000 18=131 19=174 20=174 21=174 22=174 23=000
+[  22357.1 us] PASS : T10 PROFILE shows learned busy hour 20 = 174
+[  22357.1 us] PASS : T10 PROFILE shows 07=131 and 03=063
+[  22357.1 us] >> FAST 0
+[  22391.7 us] << EVT INACTIVITY H=19
+[  22398.3 us] << OK
+[  22398.3 us] PASS : T10 fast time off
+[  22399.4 us] PASS : T10 BTNR clears warning
+
+==== T11 : temperature sensor failure ====
+[  22436.8 us] << EVT SENSOR_FAULT
+[  22436.8 us] PASS : T11 sensor NACK -> EVT SENSOR_FAULT
+[  22441.0 us] PASS : T11 fail-safe fan 50 %
+[  22521.0 us] PASS : T11 fault clears when sensor answers
+
+==== T12 : energy report and status ====
+[  22521.0 us] >> ENERGY
+[  22608.9 us] << ENERGY FAN=000000.2690Wh LIGHT=000000.0290Wh
+[  22608.9 us] PASS : T12 ENERGY report
+[  22608.9 us] PASS : T12 ENERGY line format
+[  22608.9 us] >> STATUS
+[  22821.3 us] << T=+30.0C TH=28 FAN=065% LIGHT=0 MODE=AUTO   ECO=1 SEC=DISARMED GAS=0 OCC=0 PRED=1 FAULT=0 TIME=20:33 DAY=004 AI=- P=---%
+[  22821.3 us] PASS : T12 STATUS line
+
+==== T13 : on-chip neural network occupancy detection ====
+[  22821.3 us] >> AI 237 263 585 749
+[  22880.3 us] << AI OCC=1 P=084%
+[  22880.3 us] PASS : T13 real occupied sample -> AI OCC=1
+[  22880.3 us] >> AI 224 250 0 806
+[  22936.0 us] << AI OCC=0 P=000%
+[  22936.0 us] PASS : T13 real empty sample -> AI OCC=0
+[  22936.0 us] >> AI 1 2 3
+[  22958.6 us] << ERR
+[  22958.6 us] PASS : T13 AI needs 4 values -> ERR
+[  23038.6 us] >> ENV 263 585 749
+[  23070.7 us] << OK
+[  23070.7 us] PASS : T13 ENV (live mode) accepted
+[  23270.7 us] PASS : T13 live AI detects occupancy without PIR -> light ON
+[  23270.7 us] >> STATUS
+[  23483.1 us] << T=+23.6C TH=28 FAN=000% LIGHT=1 MODE=AUTO   ECO=1 SEC=DISARMED GAS=0 OCC=1 PRED=1 FAULT=0 TIME=20:34 DAY=004 AI=1 P=085%
+[  23483.1 us] PASS : T13 STATUS shows AI=1
+[  23483.1 us] >> OCC 5
+[  23499.2 us] << OK
+[  23499.2 us] PASS : T13 OCC 5
+[  23499.2 us] >> ENV 263 0 450
+[  23528.1 us] << OK
+[  23528.1 us] PASS : T13 ENV empty-room values
+[  24228.1 us] PASS : T13 live AI: empty room -> not occupied, light OFF
+
+==================================================
+ TOTAL CHECKS : 101   FAILED : 0
+ RESULT       : ALL TESTS PASSED
+==================================================
+
+tb/tb_smart_home.v:457: $finish called at 24228185000 (1ps)

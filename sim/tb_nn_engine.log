@@ -1,0 +1,14 @@
+sample 0: T=23.7 C RH=26.3 % lux=585 CO2=749 -> z=5685 occ=1 P=84% (label 1)
+sample 1: T=23.7 C RH=26.3 % lux=578 CO2=760 -> z=5685 occ=1 P=84% (label 1)
+sample 2: T=23.7 C RH=26.2 % lux=573 CO2=770 -> z=5685 occ=1 P=84% (label 1)
+
+==================================================
+ Test samples            : 12417
+ Bit-exact with Python   : 12417 / 12417
+ Hardware accuracy       : 12286 / 12417 = 98.94 %
+ TP 3005  TN 9281  FP 115  FN 16
+ Latency per inference   : 58 clock cycles (580 ns)
+ RESULT                  : PASS (bit-exact on all samples)
+==================================================
+
+../tb/tb_nn_engine.v:56: $finish called at 7326070000 (1ps)
