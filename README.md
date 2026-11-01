@@ -10,7 +10,6 @@
 | `create_project.tcl` | Creates the whole Vivado project in one step |
 | `tools/` | `home_console.py` (PC terminal), `ai_demo.py` (streams real data to the board, measures AI accuracy), `gen_msg_rom.py`, `plot_waves.py`, `ai_figs.py` |
 | `sim/` | Simulation logs from the verification runs |
-| `docs/` | Report (.docx/.pdf), figures |
 
 ## Build in Vivado 2024.2
 1. Open Vivado → Tcl Console:
