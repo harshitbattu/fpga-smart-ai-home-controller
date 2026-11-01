@@ -18,7 +18,7 @@
    source create_project.tcl
    build_all
    ```
-2. Reports are written to `reports/` (utilization, timing, power). Take screenshots for Chapter 5.4.
+2. Reports are written to `reports/` (utilization, timing, power).
 3. Hardware Manager → Open Target → Program Device → `vivado/smart_home.runs/impl_1/smart_home_top.bit`.
 
 ## Simulate in Vivado
